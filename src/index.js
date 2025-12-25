@@ -84,7 +84,9 @@ export function compose(...middlewares) {
     let index = 0;
 
     async function next() {
-      if (index >= middlewares.length) return;
+      if (index >= middlewares.length) {
+        return;
+      }
       const middleware = middlewares[index++];
       await middleware(req, res, next);
     }

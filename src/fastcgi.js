@@ -16,21 +16,21 @@ const FCGI_END_REQUEST = 3;
 const FCGI_PARAMS = 4;
 const FCGI_STDIN = 5;
 const FCGI_STDOUT = 6;
-const FCGI_STDERR = 7;
-const FCGI_DATA = 8;
+const _FCGI_STDERR = 7; // Reserved for future use
+const _FCGI_DATA = 8; // Reserved for future use
 const FCGI_GET_VALUES = 9;
 const FCGI_GET_VALUES_RESULT = 10;
 
-// FastCGI Roles
-const FCGI_RESPONDER = 1;
-const FCGI_AUTHORIZER = 2;
-const FCGI_FILTER = 3;
+// FastCGI Roles (used in protocol parsing)
+const _FCGI_RESPONDER = 1;
+const _FCGI_AUTHORIZER = 2;
+const _FCGI_FILTER = 3;
 
 // Protocol status
 const FCGI_REQUEST_COMPLETE = 0;
-const FCGI_CANT_MPX_CONN = 1;
-const FCGI_OVERLOADED = 2;
-const FCGI_UNKNOWN_ROLE = 3;
+const _FCGI_CANT_MPX_CONN = 1;
+const _FCGI_OVERLOADED = 2;
+const _FCGI_UNKNOWN_ROLE = 3;
 
 // Header size
 const FCGI_HEADER_LEN = 8;
@@ -235,12 +235,24 @@ export class FCGIResponse {
 
   cookie(name, value, options = {}) {
     let cookieStr = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
-    if (options.maxAge) cookieStr += `; Max-Age=${options.maxAge}`;
-    if (options.path) cookieStr += `; Path=${options.path}`;
-    if (options.domain) cookieStr += `; Domain=${options.domain}`;
-    if (options.secure) cookieStr += '; Secure';
-    if (options.httpOnly) cookieStr += '; HttpOnly';
-    if (options.sameSite) cookieStr += `; SameSite=${options.sameSite}`;
+    if (options.maxAge) {
+      cookieStr += `; Max-Age=${options.maxAge}`;
+    }
+    if (options.path) {
+      cookieStr += `; Path=${options.path}`;
+    }
+    if (options.domain) {
+      cookieStr += `; Domain=${options.domain}`;
+    }
+    if (options.secure) {
+      cookieStr += '; Secure';
+    }
+    if (options.httpOnly) {
+      cookieStr += '; HttpOnly';
+    }
+    if (options.sameSite) {
+      cookieStr += `; SameSite=${options.sameSite}`;
+    }
     this._cookies.push(cookieStr);
     return this;
   }
@@ -283,7 +295,9 @@ export class FCGIResponse {
   }
 
   end(data) {
-    if (this._finished) return this;
+    if (this._finished) {
+      return this;
+    }
 
     if (data !== undefined) {
       this.write(data);
@@ -353,7 +367,9 @@ export class FastCGIServer extends EventEmitter {
 
     this.server.listen(portOrPath, () => {
       this.emit('listening', portOrPath);
-      if (callback) callback();
+      if (callback) {
+        callback();
+      }
     });
 
     this.server.on('error', (err) => this.emit('error', err));
@@ -374,10 +390,14 @@ export class FastCGIServer extends EventEmitter {
 
       while (buffer.length >= FCGI_HEADER_LEN) {
         const header = parseHeader(buffer);
-        if (!header) break;
+        if (!header) {
+          break;
+        }
 
         const totalLength = FCGI_HEADER_LEN + header.contentLength + header.paddingLength;
-        if (buffer.length < totalLength) break;
+        if (buffer.length < totalLength) {
+          break;
+        }
 
         const content = buffer.slice(FCGI_HEADER_LEN, FCGI_HEADER_LEN + header.contentLength);
         buffer = buffer.slice(totalLength);
@@ -404,39 +424,43 @@ export class FastCGIServer extends EventEmitter {
     const { type, requestId } = header;
 
     switch (type) {
-      case FCGI_BEGIN_REQUEST: {
-        const role = content.readUInt16BE(0);
-        const flags = content.readUInt8(2);
-        const keepConn = (flags & 1) !== 0;
-        requests.set(requestId, new FCGIRequest(requestId, role, keepConn));
-        break;
-      }
+    case FCGI_BEGIN_REQUEST: {
+      const role = content.readUInt16BE(0);
+      const flags = content.readUInt8(2);
+      const keepConn = (flags & 1) !== 0;
+      requests.set(requestId, new FCGIRequest(requestId, role, keepConn));
+      break;
+    }
 
-      case FCGI_PARAMS: {
-        const req = requests.get(requestId);
-        if (req) req.addParams(content);
-        this._tryHandleRequest(socket, requests, requestId);
-        break;
+    case FCGI_PARAMS: {
+      const req = requests.get(requestId);
+      if (req) {
+        req.addParams(content);
       }
+      this._tryHandleRequest(socket, requests, requestId);
+      break;
+    }
 
-      case FCGI_STDIN: {
-        const req = requests.get(requestId);
-        if (req) req.addStdin(content);
-        this._tryHandleRequest(socket, requests, requestId);
-        break;
+    case FCGI_STDIN: {
+      const req = requests.get(requestId);
+      if (req) {
+        req.addStdin(content);
       }
+      this._tryHandleRequest(socket, requests, requestId);
+      break;
+    }
 
-      case FCGI_ABORT_REQUEST: {
-        requests.delete(requestId);
-        break;
-      }
+    case FCGI_ABORT_REQUEST: {
+      requests.delete(requestId);
+      break;
+    }
 
-      case FCGI_GET_VALUES: {
-        // Respond with server capabilities
-        const response = this._buildGetValuesResult(requestId, content);
-        socket.write(response);
-        break;
-      }
+    case FCGI_GET_VALUES: {
+      // Respond with server capabilities
+      const response = this._buildGetValuesResult(requestId, content);
+      socket.write(response);
+      break;
+    }
     }
   }
 
@@ -445,7 +469,9 @@ export class FastCGIServer extends EventEmitter {
    */
   _tryHandleRequest(socket, requests, requestId) {
     const fcgiReq = requests.get(requestId);
-    if (!fcgiReq || !fcgiReq.isReady()) return;
+    if (!fcgiReq || !fcgiReq.isReady()) {
+      return;
+    }
 
     requests.delete(requestId);
 

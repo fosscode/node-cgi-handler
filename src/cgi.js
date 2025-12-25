@@ -80,7 +80,9 @@ export function parseHeaders(env) {
  * Parse query string into object
  */
 export function parseQueryString(queryString) {
-  if (!queryString) return {};
+  if (!queryString) {
+    return {};
+  }
 
   const params = new URLSearchParams(queryString);
   const result = {};
@@ -111,7 +113,9 @@ export function parseQueryString(queryString) {
  * Parse cookies from Cookie header
  */
 export function parseCookies(cookieHeader) {
-  if (!cookieHeader) return {};
+  if (!cookieHeader) {
+    return {};
+  }
 
   const cookies = {};
   const pairs = cookieHeader.split(';');
@@ -175,25 +179,25 @@ export function parseBody(body, contentType) {
   const type = contentType.toLowerCase().split(';')[0].trim();
 
   switch (type) {
-    case 'application/json':
-      try {
-        return { raw: body, parsed: JSON.parse(bodyStr) };
-      } catch {
-        return { raw: body, parsed: bodyStr };
-      }
-
-    case 'application/x-www-form-urlencoded':
-      return { raw: body, parsed: parseQueryString(bodyStr) };
-
-    case 'text/plain':
-    case 'text/html':
-    case 'text/xml':
-    case 'application/xml':
+  case 'application/json':
+    try {
+      return { raw: body, parsed: JSON.parse(bodyStr) };
+    } catch {
       return { raw: body, parsed: bodyStr };
+    }
 
-    default:
-      // Return raw buffer for binary types
-      return { raw: body, parsed: null };
+  case 'application/x-www-form-urlencoded':
+    return { raw: body, parsed: parseQueryString(bodyStr) };
+
+  case 'text/plain':
+  case 'text/html':
+  case 'text/xml':
+  case 'application/xml':
+    return { raw: body, parsed: bodyStr };
+
+  default:
+    // Return raw buffer for binary types
+    return { raw: body, parsed: null };
   }
 }
 
@@ -222,7 +226,6 @@ export function parseCGIEnv(env) {
   // Build full URL
   const protocol = request.https === 'on' ? 'https' : 'http';
   const host = request.headers.host || request.serverName || 'localhost';
-  const port = request.serverPort || (protocol === 'https' ? 443 : 80);
   const path = request.uri || request.scriptName || '/';
 
   request.url = `${protocol}://${host}${path}`;

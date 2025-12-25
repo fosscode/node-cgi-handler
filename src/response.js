@@ -175,7 +175,9 @@ export class Response {
    * Write CGI headers to stdout
    */
   _writeHeaders() {
-    if (this._headersSent) return;
+    if (this._headersSent) {
+      return;
+    }
 
     // CGI uses "Status:" header instead of HTTP status line
     const statusMessage = STATUS_MESSAGES[this._statusCode] || 'Unknown';
@@ -227,7 +229,9 @@ export class Response {
    * End the response
    */
   end(data) {
-    if (this._finished) return this;
+    if (this._finished) {
+      return this;
+    }
 
     if (data !== undefined) {
       this.write(data);
@@ -317,7 +321,7 @@ export class Response {
         });
         stream.on('error', reject);
       });
-    } catch (err) {
+    } catch (_err) {
       this.status(404).send('File not found');
       return this;
     }

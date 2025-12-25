@@ -2,9 +2,8 @@
  * Main Module (index.js) Tests
  */
 
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it, afterEach, beforeEach } from 'node:test';
 import assert from 'node:assert';
-import { Readable, Writable } from 'node:stream';
 import {
   handle,
   createServer,
@@ -15,37 +14,6 @@ import {
   Response,
   FastCGIServer,
 } from '../src/index.js';
-
-/**
- * Create mock stdio for testing CGI mode
- */
-function createMockStdio(env = {}, stdinData = '') {
-  const stdout = [];
-  const stderr = [];
-
-  return {
-    env: {
-      REQUEST_METHOD: 'GET',
-      REQUEST_URI: '/',
-      ...env,
-    },
-    stdin: Readable.from([stdinData]),
-    stdout: new Writable({
-      write(chunk, enc, cb) {
-        stdout.push(chunk.toString());
-        cb();
-      },
-    }),
-    stderr: new Writable({
-      write(chunk, enc, cb) {
-        stderr.push(chunk.toString());
-        cb();
-      },
-    }),
-    getStdout: () => stdout.join(''),
-    getStderr: () => stderr.join(''),
-  };
-}
 
 describe('createRouter()', () => {
   let router;
@@ -135,8 +103,12 @@ describe('createRouter()', () => {
       let getMatched = false;
       let postMatched = false;
 
-      router.get('/resource', () => { getMatched = true; });
-      router.post('/resource', () => { postMatched = true; });
+      router.get('/resource', () => {
+        getMatched = true; 
+      });
+      router.post('/resource', () => {
+        postMatched = true; 
+      });
 
       const req = { method: 'POST', path: '/resource' };
       const res = { end: () => {}, status: () => res, json: () => {} };
@@ -148,7 +120,9 @@ describe('createRouter()', () => {
 
     it('should match all methods with all()', async () => {
       let matched = false;
-      router.all('/any', () => { matched = true; });
+      router.all('/any', () => {
+        matched = true; 
+      });
 
       const req = { method: 'PATCH', path: '/any' };
       const res = { end: () => {}, status: () => res, json: () => {} };
@@ -173,7 +147,9 @@ describe('createRouter()', () => {
 
     it('should match wildcard path', async () => {
       let matched = false;
-      router.all('*', () => { matched = true; });
+      router.all('*', () => {
+        matched = true; 
+      });
 
       const req = { method: 'GET', path: '/anything/at/all' };
       const res = { end: () => {}, status: () => res, json: () => {} };
@@ -187,8 +163,12 @@ describe('createRouter()', () => {
     it('should match first registered route', async () => {
       let which = null;
 
-      router.get('/test', () => { which = 'first'; });
-      router.get('/test', () => { which = 'second'; });
+      router.get('/test', () => {
+        which = 'first'; 
+      });
+      router.get('/test', () => {
+        which = 'second'; 
+      });
 
       const req = { method: 'GET', path: '/test' };
       const res = { end: () => {}, status: () => res, json: () => {} };
@@ -213,7 +193,7 @@ describe('compose()', () => {
         order.push(2);
         await next();
         order.push(3);
-      }
+      },
     );
 
     await composed({}, {});
@@ -229,7 +209,7 @@ describe('compose()', () => {
       async (req, res, next) => {
         req.second = true;
         await next();
-      }
+      },
     );
 
     const req = {};
@@ -243,12 +223,12 @@ describe('compose()', () => {
     let secondCalled = false;
 
     const composed = compose(
-      async (req, res, next) => {
+      async (_req, _res, _next) => {
         // Don't call next()
       },
-      async (req, res, next) => {
+      async (_req, _res, _next) => {
         secondCalled = true;
-      }
+      },
     );
 
     await composed({}, {});
@@ -265,15 +245,15 @@ describe('compose()', () => {
     const results = [];
 
     const composed = compose(
-      async (req, res, next) => {
+      async (_req, _res, next) => {
         await new Promise(r => setTimeout(r, 10));
         results.push('a');
         await next();
       },
-      async (req, res, next) => {
+      async (_req, _res, next) => {
         results.push('b');
         await next();
-      }
+      },
     );
 
     await composed({}, {});
@@ -352,9 +332,15 @@ describe('createServer()', () => {
           this._finished = true;
         }
       },
-      status: function() { return this; },
-      type: function() { return this; },
-      send: function() { this.end(); },
+      status: function() {
+        return this; 
+      },
+      type: function() {
+        return this; 
+      },
+      send: function() {
+        this.end(); 
+      },
     };
 
     server.emit('request', { method: 'GET', path: '/' }, mockRes);
@@ -365,7 +351,7 @@ describe('createServer()', () => {
   });
 
   it('should handle errors in handler', async () => {
-    server = createServer((req, res) => {
+    server = createServer((_req, _res) => {
       throw new Error('Test error');
     });
 
@@ -378,12 +364,16 @@ describe('createServer()', () => {
         statusSet = code;
         return this;
       },
-      type: function() { return this; },
+      type: function() {
+        return this; 
+      },
       send: function() {
         sendCalled = true;
         this._finished = true;
       },
-      end: function() { this._finished = true; },
+      end: function() {
+        this._finished = true; 
+      },
     };
 
     server.emit('request', { method: 'GET', path: '/' }, mockRes);
@@ -400,7 +390,7 @@ describe('integration', () => {
     const router = createRouter();
     const responses = [];
 
-    router.get('/users', (req, res) => {
+    router.get('/users', (_req, res) => {
       responses.push('list');
       res.json([]);
     });
@@ -410,14 +400,16 @@ describe('integration', () => {
       res.json({});
     });
 
-    router.post('/users', (req, res) => {
+    router.post('/users', (_req, res) => {
       responses.push('create');
       res.json({});
     });
 
     const mockRes = {
       json: () => {},
-      status: function() { return this; },
+      status: function() {
+        return this; 
+      },
     };
 
     await router.handle({ method: 'GET', path: '/users' }, mockRes);
@@ -430,19 +422,19 @@ describe('integration', () => {
   it('should work with compose for middleware', async () => {
     const logs = [];
 
-    const logger = async (req, res, next) => {
+    const logger = async (req, _res, next) => {
       logs.push(`${req.method} ${req.path}`);
       await next();
     };
 
-    const auth = async (req, res, next) => {
+    const auth = async (req, _res, next) => {
       if (req.headers?.authorization) {
         req.user = 'authenticated';
       }
       await next();
     };
 
-    const handler = async (req, res) => {
+    const handler = async (req, _res) => {
       logs.push(`user: ${req.user || 'anonymous'}`);
     };
 

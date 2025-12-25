@@ -10,11 +10,10 @@
  *   node-cgi --help              # Show help
  */
 
-import { spawn, fork } from 'node:child_process';
-import { createServer, existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createFastCGIServer, createRequest, createResponse } from '../src/index.js';
+import { createFastCGIServer } from '../src/index.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -35,41 +34,41 @@ for (let i = 0; i < args.length; i++) {
   const arg = args[i];
 
   switch (arg) {
-    case '--fastcgi':
-    case '-f':
-      options.fastcgi = true;
-      break;
+  case '--fastcgi':
+  case '-f':
+    options.fastcgi = true;
+    break;
 
-    case '--port':
-    case '-p':
-      options.port = parseInt(args[++i], 10);
-      break;
+  case '--port':
+  case '-p':
+    options.port = parseInt(args[++i], 10);
+    break;
 
-    case '--socket':
-    case '-s':
-      options.socket = args[++i];
-      break;
+  case '--socket':
+  case '-s':
+    options.socket = args[++i];
+    break;
 
-    case '--watch':
-    case '-w':
-      options.watch = true;
-      break;
+  case '--watch':
+  case '-w':
+    options.watch = true;
+    break;
 
-    case '--help':
-    case '-h':
-      options.help = true;
-      break;
+  case '--help':
+  case '-h':
+    options.help = true;
+    break;
 
-    case '--version':
-    case '-v':
-      options.version = true;
-      break;
+  case '--version':
+  case '-v':
+    options.version = true;
+    break;
 
-    default:
-      if (!arg.startsWith('-')) {
-        options.script = arg;
-      }
-      break;
+  default:
+    if (!arg.startsWith('-')) {
+      options.script = arg;
+    }
+    break;
   }
 }
 

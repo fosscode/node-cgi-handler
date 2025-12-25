@@ -14,7 +14,6 @@ const FCGI_BEGIN_REQUEST = 1;
 const FCGI_END_REQUEST = 3;
 const FCGI_PARAMS = 4;
 const FCGI_STDIN = 5;
-const FCGI_STDOUT = 6;
 const FCGI_RESPONDER = 1;
 
 /**
