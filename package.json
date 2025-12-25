@@ -1,0 +1,41 @@
+{
+  "name": "node-cgi-handler",
+  "version": "1.0.0",
+  "description": "PHP-style CGI/FastCGI handler for Node.js - run scripts per-request like traditional PHP",
+  "main": "src/index.js",
+  "bin": {
+    "node-cgi": "./bin/cli.js",
+    "ncgi": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node --test tests/",
+    "example:cgi": "node bin/cli.js examples/hello.js",
+    "example:fcgi": "node bin/cli.js --fastcgi --port 9000"
+  },
+  "keywords": [
+    "cgi",
+    "fastcgi",
+    "php-style",
+    "serverless",
+    "nginx",
+    "apache",
+    "shared-hosting",
+    "per-request",
+    "fcgi"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "files": [
+    "src/",
+    "bin/",
+    "config/"
+  ]
+}
